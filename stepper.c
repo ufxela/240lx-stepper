@@ -1,12 +1,22 @@
 #include "rpi.h"
 
+// typedef struct stepper_position_t {
+//     struct stepper_position_t * next;
+//     int steps;
+//     int speed;
+//     int done;
+// } stepper_position_t;
+
+// #define E stepper_position_t
+// #include "Q.h"
 typedef struct {
     int steps;
     unsigned DIR;
     unsigned STEP;
     // used for interrupts:
     int speed; 
-    unsigned in_job; 
+    // unsigned in_job; 
+    // Q_t positions; 
 } stepper_t;
 
 /**
@@ -54,7 +64,6 @@ static unsigned stepper_t * int_enabled_stepper;
 static unsigned int_time_quanta_size_usec = 100;
 static unsigned int_time_quanta_count = 100;
 
-
 // computes x % y. Source: https://stackoverflow.com/questions/12486883/write-a-modulo-function-using-only-addition-subtraction
 static unsigned mod_bld(unsigned x, unsigned y){
     while (y <= x)
@@ -81,9 +90,6 @@ void interrupt_vector(unsigned pc){
     stepper_int_handler();
 }
 
-/**
- * Feel free to change.
- */ 
 void init_stepper_int(stepper_t * stepper){
     int_enabled_stepper = stepper;
     int_enabled_stepper->speed = 0; 
