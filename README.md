@@ -53,7 +53,7 @@ This image describes how to wire everything up. Note: ignore the capacitor (weir
 
 As a step by step guide, connecting directly to the a4988 (you can also use a breadboard if you want):
 1. With your power supply unplugged, Take two male to female jumper wires and stick the male ends into the power supply, then screw them in. 
-  <img src="images/power_supply_wires.JPG" alt="stepper coils" width="200"/>
+   ![power supply wires](images/power_supply_wires.JPG)
 2. With the power supply still unplugged, connect the female ends of the jumper wires to VMOT and the adjacent GND. 
 3. Connect RESET and SLEEP together on the a4988 with a female to female jumper
 4. With the Pi off, connect to GPIO outputs to STEP and DIR pins. 
