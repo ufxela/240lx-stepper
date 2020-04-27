@@ -52,17 +52,18 @@ Another way to drive the stepper is to use a dedicated stepper motor driver. In 
 This image describes how to wire everything up. Note: ignore the capacitor (weird thing labelled 100 uF)
 
 As a step by step guide, connecting directly to the a4988 (you can also use a breadboard if you want):
-1. With your power supply unplugged, Take two male to female jumper wires and stick the male ends into the power supply, then screw them in. 
+1. Put a heat sink on the a4988. 
+2. Solder female dupont connector ends to the motor's wires. You may be able to get around this with a breadboard and sticking the wires directly into the breadboard, but I don't recommend that "technique".
+3. With your power supply unplugged, Take two male to female jumper wires and stick the male ends into the power supply, then screw them in. 
    ![power supply wires](images/power_supply_wires.JPG)
-2. With the power supply still unplugged, connect the female ends of the jumper wires to VMOT and the adjacent GND. 
-3. Connect RESET and SLEEP together on the a4988 with a female to female jumper
-4. With the Pi off, connect to GPIO outputs to STEP and DIR pins. 
-5. With the Pi off, connect 3v3 and a ground pin to VDD and the adjacent GND on the a4988 respectively
-6. Connect the stepper motor's wires to A1/A2/B1/B2
-   1. You may find it useful to solder male dupont connector ends to the motor's wires. Highly recommend.
-   2. It does matter which wire goes to which pin, to a certain degree
-   3. The key is to find wire "pairings" and then ensure you connect each pair to a pin with the same letter (i.e. if I find that the green and red wire are a pair, then I should connect the green wire to either A1 or A2 and then the red wire to the other).
-   4. You can find wire pairings with trial and error. Take any two wires, then touch their metal ends together. While their ends are held together, try spinning the motor shaft. If you feel more resistance than if the wire ends aren't contacted then you've found your pair. Otherwise, try one of the other two possible pairings. 
+4. With the power supply still unplugged, connect the female ends of the jumper wires to VMOT and the adjacent GND. 
+5. Connect RESET and SLEEP together on the a4988 with a female to female jumper
+6. With the Pi off, connect to GPIO outputs to STEP and DIR pins. 
+7. With the Pi off, connect 3v3 and a ground pin to VDD and the adjacent GND on the a4988 respectively
+8. Connect the stepper motor's wires to A1/A2/B1/B2
+   1. It does matter which wire goes to which pin, to a certain degree
+   2. The key is to find wire "pairings" and then ensure you connect each pair to a pin with the same letter (i.e. if I find that the green and red wire are a pair, then I should connect the green wire to either A1 or A2 and then the red wire to the other).
+   3. You can find wire pairings with trial and error. Take any two wires, then touch their metal ends together. While their ends are held together, try spinning the motor shaft. If you feel more resistance than if the wire ends aren't contacted then you've found your pair. Otherwise, try one of the other two possible pairings. 
 
 ## Part 2 - Driving the stepper motor
 This should be pretty easy, assuming everything is wired up correctly. All we need to do is write a 0 or a 1 to DIR, depending on which direction we want to run the motor in. And then we need to write a 1 to STEP to step.
