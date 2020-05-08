@@ -2,96 +2,155 @@
 
 Table of Contents
 - [Stepper Motors](#stepper-motors)
-  - [Part 0 - Background](#part-0---background)
-    - [Motor](#motor)
-    - [Driver](#driver)
-  - [Part 1 - Wiring Everything Up](#part-1---wiring-everything-up)
-  - [Part 2 - Driving the stepper motor](#part-2---driving-the-stepper-motor)
-  - [Part 3 - Driving the stepper motor with interrupts](#part-3---driving-the-stepper-motor-with-interrupts)
-  - [Part 4 - other stuff](#part-4---other-stuff)
-  - [todo:](#todo)
+  - [Part 1 - Driving the stepper motor](#part-1---driving-the-stepper-motor)
+  - [Part 2 - Driving the stepper motor with interrupts](#part-2---driving-the-stepper-motor-with-interrupts)
+    - [Interrupt Implementation Ideas](#interrupt-implementation-ideas)
+      - [Option 1: raw time based](#option-1-raw-time-based)
+      - [Option 2: time quanta based](#option-2-time-quanta-based)
+      - [Option 3: raw time based, but better](#option-3-raw-time-based-but-better)
+    - [Other interrupt notes](#other-interrupt-notes)
+  - [Part 3 - Extensions](#part-3---extensions)
+    - [Extension: Microstepping](#extension-microstepping)
+    - [Extension: Acceleration](#extension-acceleration)
+    - [Extension: Do something cool](#extension-do-something-cool)
 
-## Part 0 - Background
 
-### Motor
-Today we're working with a NEMA 23 stepper motor. NEMA is an association which creates standards. The NEMA 23 standard means that our motor is approximately 2.3 inches wide. The larger the stepper motor, the more torque and more current we need to power it. Our motor has a max torque of 1.26 Nm. Interesting fact: there are NEMA 54 stepper motors out there. These are a lot bigger in person than they look in pictures. These can produce 36 Nm of force.
-
-You might notice that your motor has four wires coming out of it. As you might have guessed, these are how we control our motor.
-
-<img src="images/NEMA23_wires.png" alt="Nema 23 Wires" width="200"/>
-
-Internally, these wires are connected up to coils (A1, A2, B1, B2 are our wires) which surround a magnet:
-
-<img src="images/stepper_coils.png" alt="stepper coils" width="200"/>
-
-So if we run current from wire A1 towards wire A2, through the coil that connects the two, then we create a magnetic field that may, we'll attract the north end of the magnet towards the coil.
-
-And if we drive current from A2 to A1, in the opposite direction, we'll attract the south end of the magnet towards the coil. 
-
-Similarity, if we run current through the B1/B2 coil, we'll attract / repel the magnet. 
-
-Here's a descriptive image:
-<img src="images/stepper_coils_steps.png" alt="stepper coils" width="500"/>
-
-As you can see in the above image, if we drive wires A1, A2, A3 and A4 in the right order, we can cause the magnet inside to spin! Furthermore, this internal magnet is connected up to a shaft. So spinning the magnet = spinning the motor.
-
-A cool physics thing that you can try out right now (which idk how works--one of our physics legends can probably explain :)) is if you press the wire ends of the right two wires (find w/ trial and error) and then try to spin the motor shaft, you'll feel some resistance and maybe clicking!
-
-Our motor has 200 steps in a full revolution.
-
-### Driver
-So connect up four gpio pins to the four wires coming out of the stepper and we're set, right? Unfortunately, no. Our pins output a max of 16 mA of current at 3.3v which isn't nearly enough for our stepper. Instead, we need external hardware. 
-
-You might imagine that we can hook up some transistors to the Pi and go from there. That's a perfectly valid approach. In fact, a dual h Bridge packages up these transistors up for us into a single easy to use board. However, most cheap dual h bridges that I found weren't rated for high enough current for our stepper, and would get unbearably hot. 
-
-Another way to drive the stepper is to use a dedicated stepper motor driver. In this lab, we'll use the a4988 for this. The a4988 abstracts away a lot of work for us--instead of having to control wires A1/A2 and B1/B2 directly, the a4988 will take care of this. **With the a4988, we just use the DIR and STEP pins. DIR changes the direction of stepping, and STEP steps the motor forward by one step.**
-
-## Part 1 - Wiring Everything Up
-<img src="images/a4988_pinout.png" alt="stepper coils" width="500"/>
-
-This image describes how to wire everything up. Note: ignore the capacitor (weird thing labelled 100 uF)
-
-As a step by step guide, connecting directly to the a4988 (you can also use a breadboard if you want):
-1. Put a heat sink on the a4988. 
-2. Solder female dupont connector ends to the motor's wires. You may be able to get around this with a breadboard and sticking the wires directly into the breadboard, but I don't recommend that "technique".
-3. With your power supply unplugged, Take two male to female jumper wires and stick the male ends into the power supply, then screw them in. 
-   ![power supply wires](images/power_supply_wires.JPG)
-4. With the power supply still unplugged, connect the female ends of the jumper wires to VMOT and the adjacent GND. 
-5. Connect RESET and SLEEP together on the a4988 with a female to female jumper
-6. With the Pi off, connect to GPIO outputs to STEP and DIR pins. 
-7. With the Pi off, connect 3v3 and a ground pin to VDD and the adjacent GND on the a4988 respectively
-8. Connect the stepper motor's wires to A1/A2/B1/B2
-   1. It does matter which wire goes to which pin, to a certain degree
-   2. The key is to find wire "pairings" and then ensure you connect each pair to a pin with the same letter (i.e. if I find that the green and red wire are a pair, then I should connect the green wire to either A1 or A2 and then the red wire to the other).
-   3. You can find wire pairings with trial and error. Take any two wires, then touch their metal ends together. While their ends are held together, try spinning the motor shaft. If you feel more resistance than if the wire ends aren't contacted then you've found your pair. Otherwise, try one of the other two possible pairings. 
-
-## Part 2 - Driving the stepper motor
-This should be pretty easy, assuming everything is wired up correctly. All we need to do is write a 0 or a 1 to DIR, depending on which direction we want to run the motor in. And then we need to write a 1 to STEP to step.
+## Part 1 - Driving the stepper motor
+This should be pretty easy, assuming everything is wired up correctly. The idea: all we need to do is write a 0 or a 1 to DIR, depending on which direction we want to run the motor in, and then we need to write a 1 to STEP to step.
 
 You can now write a nice interface to step the motor and change directions. Some starter code that you can modify add to or ignore as you'd like is provided in `stepper.c`. Also some music data for the national anthem is provided in `national_anthem.c`. To play it, you'll have to build your own "play notes" function. 
 
 Some general notes:
 - Our motor has 200 steps per full revolution.
-- To do multiple motor steps, you'll need to write a 0 to STEP between any two 1-writes to STEP. 
+- **To do multiple motor steps, you'll need to write a 0 to STEP between any two 1-writes to STEP.**
 - You'll need to delay for some amount of time between any two motor steps, otherwise you'll "skip steps." You should find out what the min delay time you can have between any two motor steps, before your motor begins to skip. 
   - Challenge: try to spin the motor as fast as you can! Try adding accelerations with well timed delays to get even more speed. 
 - You should keep track of the motor's position (based on the number of steps you've stepped it and the direction you stepped it in).
 - It may be fun to write functions which step the motor for a certain number of steps, or until it's reached a certain number of steps.
 - You can also write functions to step the motor at a specific speed or frequency, and then generate tones from there (you can download a tuner app on your phone to find precise frequencies, and then use ratios and stuff to extrapolate more notes/pitches from that single, tuned note).
+  - Then, play the national anthem, or write/transcrive your own song!
 
-## Part 3 - Driving the stepper motor with interrupts
+## Part 2 - Driving the stepper motor with interrupts
 
-Telling the motor explicitly to step is annoying. Let's use interrupts so that we can just tell the stepper to run at a speed, and let the timer interrupts deal with actually stepping the motor! The main gist is that we want to step the motor either forward or backward at a certain time, based on whatever speed we set the motor to run at. There's some basic starter code provided for this. But as usual, you can do this however you'd like. Feel free to modify, add or ignore the starter code. 
+Telling the motor explicitly to step is annoying. Let's use interrupts so that we can just tell the stepper to run at a speed or go to a position, and let the timer interrupts deal with actually stepping the motor! 
 
-Notes:
-- Right now, the timer interrupts are set to occur every 100 usec. I found that this time quanta gave me enough resolution for the motor, but feel free to change it however you'd like.
-- One idea is to add on a Queue field (see `Q.h` from 140e) to the `stepper_t` struct and then create the ability to enqueue positions (and maybe speeds / times for those positions), and then modify the interrupt handler so that it reads from this queue and steps the motor accordingly. 
-- You may find division and mod functions useful. I've provided a mod function which uses binary long division in the starter code. 
+There are many different ways to do this. You can either come up with your own, or see some of the options down below for inspiration. Each of the options listed below have their own downfalls and benefits. Maybe you can come up with a system that checks more boxes!
 
-## Part 4 - other stuff
-incorporate microphone, hall effect sensor, gyro/accel, other sensors to make something cool?
+The starter code has some code that implements option 1, which is the simplest option in my opinion.  
 
-## todo:
-- part 4  
-- microstepping?  
-- acceleration?  
+### Interrupt Implementation Ideas
+The ideas which I will list follow this spec: we can enqueue a goal position and a speed into a queue, and the interrupt based stepper will go to these positions at the specified speeds. There's other ways to do this, which you should explore if you've got ideas!
+
+Each of the ideas I'll list have several things in common: 
+1. There is a `stepper_int_t` struct, which contains data for a specific stepper, including a queue of `stepper_position_t`'s. 
+   ```c
+   typedef struct {
+     stepper_t stepper,
+     stepper_status_t status
+     Q_t positions_Q
+   } stepper_int_t
+   ```
+1. There is a `stepper_position_t` type which contains data about a specific position for the stepper to go to. The layout these depends on which option you choose, and are defined down in each option's description.
+2. We'll define a couple enums to make life cleaner (you can change these, and it's likely you won't need all of the options):
+   ```c
+   typedef enum  {
+     IN_JOB,
+     NOT_IN_JOB
+   } stepper_status_t;
+
+   typedef enum {
+     NOT_STARTED,
+     STARTED,
+     FINISHED,
+     ERROR
+   } stepper_position_status_t;
+   ```
+
+#### Option 1: raw time based
+The idea behind this is that we keep track of the current time, and the time at the previous step, and if it's been a sufficient amount of time, we step again and then update the time at the previous step. More specifically, keep track of the desired time between each step `usec_between_steps` and the time that the last step occurred `usec_at_prev_step` and then if `current_time > usec_at_prev_step + usec_between_steps` then we step and update `usec_at_prev_step`. Here's how our structs might look like
+
+```c
+typedef struct stepper_position_t {
+  struct stepper_position_t * next; // needed, as described in  "Q.h"
+  int goal_steps,
+  unsigned usec_between_steps,
+  unsigned usec_at_prev_step,
+  stepper_position_status_t status
+} stepper_position_t; 
+```
+
+Benefits: simple, should be easy to add in accelerations (try adding in a `time_at_prev_prev_step` or, equivalently, a `velocity` field to the stepper struct)
+
+Drawbacks: Missing steps cascades, we don't have precise control of speed--it's limited to the granularity of our timer interrupts. Timer overflow--what to do in this scenario?
+
+#### Option 2: time quanta based
+The idea behind this one is that we set our interrupt handler to trigger every `N` usecs. So we can put a label to that `N` usec period of time, and use that as an abstraction. We'll call it a time "quanta". Here's how our position struct might look like:
+
+```c
+typedef struct stepper_position_t {
+  struct stepper_position_t * next;
+  int goal_steps,
+  unsigned quanta_between_steps,
+  stepper_position_status_t status
+} stepper_position_t; 
+```
+
+We also have a global variable `quanta_count` which we increment every time the interrupt handler fires. In the interrupt handler, peek the head of the `positions_Q` and if `quanta_count % quanta_between_steps == 0`, then we step. The direction in which we step depends on `goal_steps` and our current position. If current position equals `goal_steps` then pop off the current position. Also, update statuses of stepper and position as necessary. 
+
+Benefits: We're not going to "miss" steps in software, like we will in option 1. This is kind of not really a benefit because the way we prevent the missing of steps is essentially by preventing the user from choosing speeds which will cause missed steps, since users can only choose speeds which are multiples of the quanta size.
+
+Drawbacks: just like option 1, the granularity of our stepper speeds is limited by the time between interrupt handler fires. It's also a littler slower/more complicated than option 1. It's also hard to incorporate accelerations into this, I think. 
+
+#### Option 3: raw time based, but better
+This is my favorite option of the three, because it doesn't have the cascading missed steps problem of option 1 and allows for precise speed control (from my testing, regardless of what speed you choose or how long you run the stepper for, this method will have a job completion time within 100 usec of the expected job completion time.)
+
+Here's what our positions struct could look like: 
+```c
+typedef struct stepper_position_t {
+  struct stepper3_position_t * next;
+  int start_steps; // starting steps of this position
+  int goal_steps; // goal steps of this position
+  unsigned start_time_usec; // start time of the position
+  unsigned usec_between_steps;
+  stepper_position_status_t status;
+} stepper_position_t;
+```
+
+The logic for this option is in the interrupt handler, we get the current position of the stepper, and then get the expected current position at the current time we are at (I defined a helper routine to do that math--`static int get_expected_curr_pos(stepper_position_t * goal, unsigned curr_time, int curr_pos);`. Note: be attentive to signs). Then, `diff = expected_curr_pos - curr_pos`, and we step for `diff` amount of steps in the handler. 
+
+The primary reason this method is so much better than option 1 is because we're keeping track of the `start_time_usec` and not just the `usec_at_prev_step` which means things stay more in sync.
+
+Note that for every position, the first time we see it, initialize `start_steps` and `start_time_usec` to the current steps and the current time.
+
+Benefits: Good precision in speed, and no software-missed steps.
+
+Drawbacks: it may be the case that we skip steps mechanically since we might do multiple fast steps (`diff > 1`) in the interrupt handler at once. We could delay between these steps, but that draws out the interrupt handler, which is not good (although `diff > 1` should be very rare since most of the time, especially if your interrupt handler triggers pretty frequently, as our stepper shouldn't be able to go that fast).  
+
+### Other interrupt notes
+- You may find a fast division / mod function useful. Some are provided (implemented with binary long division).
+- You can look into extending this library to multiple steppers. Also, consider adding a 'sync' state to ensure that multiple steppers are synced up. 
+- You should add in temporary time checks to see how long your interrupt handler takes to run. Obviously, try to keep this as short as possible, although this time shouldn't be a limiting factor for the speed at which you can step your motor (without any physics trickery i.e. adding acceleration, even with 16 microsteps, my stepper maxes out at ~100 usec per microstep. Without microsteps, this rises up to like 1600 usec. Plenty of time).
+- You can allow user to select the start time in option 3. 
+
+## Part 3 - Extensions
+Steppers are cool by themselves, but can be a lot cooler in combination with other things. Rephrased: steppers are so cool that they can make other, maybe boring, things cool. 
+
+### Extension: Microstepping
+This one is very easy and pretty nice. Read up on how a4988 does microstepping (or look at image below). Makes your stepper a lot quieter and smoother. One challenge is that you lose speed, since your steps sizes are smaller (everything will be N times slower if you do N microsteps). You can counteract this by allowing your interrupt handler to trigger N times more often than it previously did.
+
+![microstepping](images/a4988_microstepping.png)
+
+### Extension: Acceleration
+Implement accelerations (with interrupts if you're up to a challenge: I recommend using either option 1 or option 3 of the additional options sections of the interrupt part of this lab). How fast can you get your stepper to run? (Note: another cool thing about steppers, *I think*, is that regardless of how fast they're spinning, they consume the same amount of power. It's very likely that I'm wrong, but based on steppers work, that's my impression). 
+
+### Extension: Do something cool
+Ideas:
+- We have three hall effect sensors and a magnet--maybe you could build a basic encoder and use this in addition to running the motor at a fast speed over a long amount of time to check if / how many steps the motor skips?
+- sonar taped to shaft, to create point cloud map of your room. The resolution of your map is related to the size of your motor's steps/microsteps, and the amount of patience you have to generate a map.
+- Something with accelerometer. For example, have a laser pointer point in whatever direction you orient the accelerometer in. Alternatively, have laser pointer point in same direction no matter how you rotate the body of the stepper with your hand. Also: maybe replace laser pointer with your device of choice. 
+- The light strip. Do something cool. 
+- Use the fact that we can generate tones with the stepper. Perhaps encode a secret message in the tones you generate, and see if we can decode it over zoom's audio and microphones connected to our Pi's.
+- Courtesy of Akshay, We've seen what the unix kernel *looks like*, now: what does it sound like? 
+- Use your computer mouse to control stepper somehow?
+- Make your keyboard a *keyboard* piano. If you hold down a key, the stepper plays a note. If you lift a key, the stepper stops playing the note. How do deal with the situation where multiple keys are pressed?
+- You can probably come up with things cooler--do that if you have something!!

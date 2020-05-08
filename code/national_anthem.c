@@ -1,6 +1,7 @@
 /**
  * Here's the notes to the american national anthem
  * 
+ * This won't compile:
  * You'll have to tune your Pi and write some functions which can play
  * these notes. 
  * 
