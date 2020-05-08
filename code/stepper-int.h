@@ -1,6 +1,3 @@
-/**
- * Another, differently implemented stepper int library, based off of option 1. Has its benefits and drawbacks.
- */ 
 #ifndef __STEPPER_INT_H__
 #define __STEPPER_INT_H__
 

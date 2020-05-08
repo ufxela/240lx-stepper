@@ -1,6 +1,7 @@
 #include "rpi.h"
 #include "stepper.h"
 #include "stepper-int.h"
+#include "math-helpers.h"
 
 // stepper pins
 #define DIR 21

@@ -6,10 +6,7 @@ stepper_t * stepper_init(unsigned dir, unsigned step){
     kmalloc_init();
     stepper_t * stepper = kmalloc(sizeof(stepper_t));
     
-    stepper->dir = dir;
-    stepper->step = step;
-    gpio_set_output(stepper->dir);
-    gpio_set_output(stepper->step);
+    unimplemented();
 
     return stepper;
 }
@@ -26,17 +23,13 @@ stepper_t * stepper_init_with_microsteps(unsigned dir, unsigned step, unsigned M
 
 // how many gpio writes should you do?
 void stepper_step_forward(stepper_t * stepper){
-    gpio_write(stepper->dir, 1);
-    gpio_write(stepper->step, 1);
-    gpio_write(stepper->step, 0);
+    unimplemented();
 
     stepper->step_count++;
 }
 
 void stepper_step_backward(stepper_t * stepper){
-    gpio_write(stepper->dir, 0);
-    gpio_write(stepper->step, 1);
-    gpio_write(stepper->step, 0);
+    unimplemented();
 
     stepper->step_count--;
 }
