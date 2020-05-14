@@ -57,13 +57,12 @@ As a step by step guide, connecting directly to the a4988 (you can also use a br
    ![power supply wires](images/power_supply_wires.JPG)
 4. With the power supply still unplugged, connect the female ends of the jumper wires to VMOT and the adjacent GND. 
 5. Connect RESET and SLEEP together on the a4988 with a female to female jumper
-6. With the Pi off, connect to GPIO outputs to STEP and DIR pins. 
+6. Connect a4988's STEP pin to pin 20 on the pi and a4988's DIR pin to pin 21 on the pi.
 7. With the Pi off, connect 3v3 and a ground pin to VDD and the adjacent GND on the a4988 respectively
 8. Connect the stepper motor's wires to A1/A2/B1/B2
    1. It does matter which wire goes to which pin, to a certain degree
    2. The key is to find wire "pairings" and then ensure you connect each pair to a pin with the same letter (i.e. if I find that the green and red wire are a pair, then I should connect the green wire to either A1 or A2 and then the red wire to the other).
    3. You can find wire pairings with trial and error. Take any two wires, then touch their metal ends together. While their ends are held together, try spinning the motor shaft. If you feel more resistance than if the wire ends aren't contacted then you've found your pair. Otherwise, try one of the other two possible pairings. 
-9. Connect a4988's step pin to pin 20 on the pi and a4988's dir pin to pin 21 on the pi.
 
 ## Part 2 - Verify
-Run `my-install test-programs/stepper_test.bin`. Should see/hear patriotism. 
+Run `my-install test-programs/stepper_test.bin`. Should see/hear spinning/patriotism. 
