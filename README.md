@@ -24,7 +24,7 @@ Some general notes:
 - Our motor has 200 steps per full revolution.
 - **To do multiple motor steps, you'll need to write a 0 to STEP between any two 1-writes to STEP.**
 - You'll need to delay for some amount of time between any two motor steps, otherwise you'll "skip steps." You should find out what the min delay time you can have between any two motor steps, before your motor begins to skip. 
-  - Challenge: try to spin the motor as fast as you can! Try adding accelerations with well timed delays to get even more speed. 
+  - Challenge: try to spin the motor as fast as you can! Try adding accelerations with well timed delays to get even more speed. This is a simple idea, but can become nuanced. Also, note that at small time delays, the time you delay between steps isn't the actual time between steps, since our step function takes some amount of time.
 - You should keep track of the motor's position (based on the number of steps you've stepped it and the direction you stepped it in).
 - It may be fun to write functions which step the motor for a certain number of steps, or until it's reached a certain number of steps.
 - You can also write functions to step the motor at a specific speed or frequency, and then generate tones from there (you can download a tuner app on your phone to find precise frequencies, and then use ratios and stuff to extrapolate more notes/pitches from that single, tuned note).
@@ -141,7 +141,7 @@ This one is very easy and pretty nice. Read up on how a4988 does microstepping (
 ![microstepping](images/a4988_microstepping.png)
 
 ### Extension: Acceleration
-Implement accelerations (with interrupts if you're up to a challenge: I recommend using either option 1 or option 3 of the additional options sections of the interrupt part of this lab). How fast can you get your stepper to run? (Note: another cool thing about steppers, *I think*, is that regardless of how fast they're spinning, they consume the same amount of power. It's very likely that I'm wrong, but based on steppers work, that's my impression). 
+Implement accelerations (with interrupts if you're up to a challenge: I recommend using either option 1 or option 3 of the additional options sections of the interrupt part of this lab). How fast can you get your stepper to run? Recommendations for highest speed: use your smallest microstepping option, use delay_ncycles for finer granularity. Also, be careful because the time which you delay between steps isn't exactly equal to the psychical time between steps, since our step function takes time. My fastest speed (on a nema 17 motor--haven't tested with the nema 23) was 8 usec (physical time, not delay time) per 16th step, or 2343 rpm. As a comparison, with neither accelerations nor microstepping, my best rpm on that same motor was 336 rpm. For the nema 23: rpm 457 vs 10 rpm, not as drastic of a difference, so maybe you can do better! (Note: another cool thing about steppers, *I think*, is that regardless of how fast they're spinning, they consume the same amount of power. It's very likely that I'm wrong, but based on steppers work, that's my impression). 
 
 ### Extension: Do something cool
 Ideas:
