@@ -5,6 +5,7 @@ Table of Contents
   - [Part 0 - Background](#part-0---background)
     - [Motor](#motor)
     - [Driver](#driver)
+  - [Part 0.5 - Parts](#part-05---parts)
   - [Part 1 - Wiring Everything Up](#part-1---wiring-everything-up)
   - [Part 2 - Verify](#part-2---verify)
 
@@ -44,6 +45,17 @@ So connect up four gpio pins to the four wires coming out of the stepper and we'
 You might imagine that we can hook up some transistors to the Pi and go from there. That's a perfectly valid approach. In fact, a dual h Bridge packages up these transistors up for us into a single easy to use board. However, most cheap dual h bridges that I found weren't rated for high enough current for our stepper, and would get unbearably hot. 
 
 Another way to drive the stepper is to use a dedicated stepper motor driver. In this lab, we'll use the a4988 for this. The a4988 abstracts away a lot of work for us--instead of having to control wires A1/A2 and B1/B2 directly, the a4988 will take care of this. **With the a4988, we just use the DIR and STEP pins. DIR changes the direction of stepping, and STEP steps the motor forward by one step.**
+
+## Part 0.5 - Parts
+Here's a list of everything the lab needs, minus stuff like gpio wires:
+- Ledmo power supply
+![ledmo](images/ledmo.JPG)
+- The green adapter
+![dc adapter](images/green_dc_adapter.JPG)
+- a4988 stepper driver
+![a4988](images/a4988_package.JPG)
+- stepper motor
+- <img src="images/NEMA23_wires.png" alt="Nema 23 Wires" width="200"/>
 
 ## Part 1 - Wiring Everything Up
 <img src="images/a4988_pinout.png" alt="stepper coils" width="500"/>
