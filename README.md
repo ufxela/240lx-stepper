@@ -10,6 +10,7 @@ Table of Contents
       - [Option 3: raw time based, but better](#option-3-raw-time-based-but-better)
     - [Other interrupt notes](#other-interrupt-notes)
   - [Part 3 - Extensions](#part-3---extensions)
+    - [Extension: Accel](#extension-accel)
     - [Extension: Microstepping](#extension-microstepping)
     - [Extension: Acceleration](#extension-acceleration)
     - [Extension: Do something cool](#extension-do-something-cool)
@@ -133,7 +134,18 @@ Drawbacks: it may be the case that we skip steps mechanically since we might do 
 - You can allow user to select the start time in option 3. 
 
 ## Part 3 - Extensions
-Steppers are cool by themselves, but can be a lot cooler in combination with other things. Rephrased: steppers are so cool that they can make other, maybe boring, things cool. 
+Steppers are cool by themselves, but can be a lot cooler in combination with other things. Rephrased: steppers are so cool that they can make other, maybe boring, things cool. Note: some of these extensions need you to attach hardware to the motor's shaft. I used double sided tape for this, and hot glue might also work, but this can be difficult, so if you can't, just do one of the other extensions.
+
+### Extension: Accel
+Make a 1D gimbal with your accel. If I'm not mistaken, the accel measures forces that the chip feels. And since gravity is, well, gravity, we can use it as a reference point for determining orientation. So if we put things together like this:
+
+![accel stepper](images/accel_stepper.JPG) 
+
+Then we can program a self-balancing rig. My code is pretty simple:
+1. I read from the accel to get a "zero" reference point
+2. I begin a loop where I check the accel reading, compare it to the reference point, and then step in the appropriate direction to correct any movements. 
+3. Then I delay for ~40ms, because when the stepper is stepping (and for a little time afterwards) our accel's readings aren't what we want, since there are other forces besides gravity now acting on our stepper. 
+This way of doing things isn't the greatest, because there's a decent amount of lag in the position correcting, since we're not stepping fast enough due to the added delay (40ms between steps & 200 steps per rotation => 8 seconds per rev, very slow). Try to figure out something better than I did!
 
 ### Extension: Microstepping
 This one is very easy and pretty nice. Read up on how a4988 does microstepping (or look at image below). Makes your stepper a lot quieter and smoother. One challenge is that you lose speed, since your steps sizes are smaller (everything will be N times slower if you do N microsteps). You can counteract this by allowing your interrupt handler to trigger N times more often than it previously did.
