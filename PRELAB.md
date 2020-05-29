@@ -63,7 +63,7 @@ Here's a list of everything the lab needs, minus stuff like gpio wires:
 This image describes how to wire everything up. Note: ignore the capacitor (weird thing labelled 100 uF)
 
 As a step by step guide, connecting directly to the a4988 (you can also use a breadboard if you want):
-1. Put a heat sink on the a4988. This will make everything... *cooler*. 
+1. Put a heat sink on the a4988. This will make everything... *cooler*. (Goes on the black chip that's near the screw; peel the white paper off the flat bottom of the heat sink). 
 2. Solder female dupont connector ends to the motor's wires. You may be able to get around this with a breadboard and sticking the wires directly into the breadboard, but I don't recommend that "technique".
 3. With your power supply unplugged, Take two male to female jumper wires and stick the male ends into the power supply, then screw them in. 
    ![power supply wires](images/power_supply_wires.JPG)
@@ -71,9 +71,9 @@ As a step by step guide, connecting directly to the a4988 (you can also use a br
 5. Connect RESET and SLEEP together on the a4988 with a female to female jumper
 6. Connect a4988's STEP pin to pin 20 on the pi and a4988's DIR pin to pin 21 on the pi.
 7. With the Pi off, connect 3v3 and a ground pin to VDD and the adjacent GND on the a4988 respectively
-8. Connect the stepper motor's wires to A1/A2/B1/B2
+8. Connect the stepper motor's wires to A1/A2/B1/B2 (this is probably actually be 1A/1B/2A/2B--different people might have different labels, but the pairs are next to each other on the driver. Just look at the position of the pins in the diagram and match based off of that).
    1. It does matter which wire goes to which pin, to a certain degree
-   2. The key is to find wire "pairings" and then ensure you connect each pair to a pin with the same letter (i.e. if I find that the green and red wire are a pair, then I should connect the green wire to either A1 or A2 and then the red wire to the other).
+   2. The key is to find wire "pairings" and then ensure you connect each pair to a pin with the same letter (i.e. if I find that the green and red wire are a pair, then I should connect the green wire to either 1A or 1B and then the red wire to the other).
    3. You can find wire pairings with trial and error. Take any two wires, then touch their metal ends together. While their ends are held together, try spinning the motor shaft. If you feel more resistance than if the wire ends aren't contacted then you've found your pair. Otherwise, try one of the other two possible pairings. 
 
 ## Part 2 - Verify
